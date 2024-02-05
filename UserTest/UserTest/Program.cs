@@ -5,6 +5,7 @@ using UserTest.BLL.Services.Interfaces;
 using UserTest.DAL.EF;
 using UserTest.DAL.Repositories.Interfaces;
 using UserTest.DAL.Repositories;
+using UserTest.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,12 +39,15 @@ builder.Services.AddCors(options => options
 
 var app = builder.Build();
 
+
+app.MigrateDatabase();
+
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 app.UseHttpsRedirection();
 app.UseCors(
