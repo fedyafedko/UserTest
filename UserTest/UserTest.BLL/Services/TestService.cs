@@ -27,7 +27,17 @@ public class TestService : ITestService
     {
         var tests = await _testUserRepository.Where(x => x.User.Id == userId).Select(x => x.Test).ToListAsync();
 
-        return _mapper.Map<List<TestDTO>>(tests);
+        var dto = _mapper.Map<List<TestDTO>>(tests);
+
+        foreach (var item in dto)
+        {
+            var userTest = await _testUserRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.TestId == item.Id)
+                ?? throw new Exception("Test not found");
+
+            item.IsFinished = userTest.IsFinished;
+        }
+
+        return dto;
     }
 
     public async Task<TestDTO> GetTestById(Guid testId)

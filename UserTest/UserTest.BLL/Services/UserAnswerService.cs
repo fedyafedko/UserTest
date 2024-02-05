@@ -27,7 +27,7 @@ public class UserAnswerService : IUserAnswerService
     }
     public async Task<bool> AddUserAnswer(UserAnswerDTO dto)
     {
-        var user = await _userRepository.FirstOrDefaultAsync(x => x.Id == dto.UsersId)
+        var user = await _userRepository.FirstOrDefaultAsync(x => x.Id == dto.UserId)
             ?? throw new Exception("User not found");
 
         var userTest = await _testUserRepository.FirstOrDefaultAsync(x => x.UserId == user.Id && x.TestId == dto.TestId)
@@ -54,25 +54,25 @@ public class UserAnswerService : IUserAnswerService
     {
         var userTest = await _testUserRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.TestId == testId)
             ?? throw new Exception("Test not found");
+
         var user = await _userRepository.FirstOrDefaultAsync(x => x.Id == userId)
             ?? throw new Exception("User not found");
 
-        int count = 0;
+        int correctCount = user.Options.Count(item => item.IsCorrect == true);
 
-        foreach (var item in user.Options)
-        {
-            if (item.IsCorrect)
-            {
-                count++;
-            }
-        }
         var test = await _testRepository.Include(x => x.Tasks).FirstOrDefaultAsync(x => x.Id == testId)
             ?? throw new Exception("Test not found");
 
-        test.Tasks.Count();
+        int totalTasks = test.Tasks.Count();
 
-        userTest.Mark = count / test.Tasks.Count() * test.MaxMark;
+        if (totalTasks == 0)
+            throw new Exception("Test has no tasks");
+
+        int mark = (int)((double)correctCount / totalTasks * test.MaxMark);
+
+        userTest.Mark = mark;
         userTest.IsFinished = true;
         return await _testUserRepository.UpdateAsync(userTest);
     }
+
 }
